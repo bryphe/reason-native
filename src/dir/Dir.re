@@ -156,9 +156,9 @@ let getEnvAbsoluteExn = s =>
  * Allows mocking out the windows variables on other platforms for testing.
  */
 let shGetFolderPath = code => {
-  prerr_endline ("shGetFolderPath: " ++ string_of_int(code));
   let csidl = WinConst.knownFolderToCSIDL(code);
   let envVarMock = WinConst.knownFolderToMockEnvVar(code);
+  prerr_endline ("shGetFolderPath: " ++ envVarMock);
   if (isWin) {
     prerr_endline ("Calling sh_get_folder_path...");
     let pathStr= sh_get_folder_path(csidl, shGetFolderPathCurrent);
