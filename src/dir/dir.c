@@ -30,6 +30,6 @@ CAMLprim value sh_get_folder_path(value nFolder, value dwFlags)
     caml_failwith("sh_get_folder_path");
   }
 #endif
-  CAMLreturn(Val_unit);
+  CAMLreturn(path);
 }
 
