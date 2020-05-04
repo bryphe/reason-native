@@ -106,23 +106,46 @@ module WinConst = {
     };
 };
 
+/* 
+ * The [Fs] API expects all slashes to be normalized to forward slashes,
+ * so we need to make sure we match that constraint for Windows.
+ */
+let normalizePathSeparator = {
+  let backSlashRegex = Str.regexp("\\\\");
+  (pathStr) => pathStr |> Str.global_replace(backSlashRegex, "/");
+};
+
+let normalizeIfWindows = (pathStr) => {
+  Sys.win32 ? normalizePathSeparator(pathStr) : pathStr;
+}
+
 /*
  * Might want to rethink the ones that throw on invalid absolute paths in case
  * an application wants to let the app startup with a bad environment, then fix
  * it, and then reload all the env here.
  */
-let getOptionalEnvAbsoluteExn = s =>
+let getOptionalEnvAbsoluteExn = s => {
   switch (Sys.getenv(s)) {
   | exception Not_found => None
-  | txt => Some(Fp.absoluteExn(txt))
+  | txt =>
+    txt
+    |> normalizeIfWindows
+    |> Fp.absoluteExn
+    |> Option.some;
   };
+};
+
 let getEnvAbsoluteExn = s =>
   switch (Sys.getenv(s)) {
   | exception Not_found =>
     raise(
       Invalid_argument("Environment variable " ++ s ++ " does not exist."),
     )
-  | txt => Fp.absoluteExn(txt)
+  | txt =>
+    txt
+    |> normalizeIfWindows
+    |> Fp.absoluteExn
+    |> Option.some;
   };
 
 /**
@@ -131,18 +154,19 @@ let getEnvAbsoluteExn = s =>
 let shGetFolderPath = code => {
   let csidl = WinConst.knownFolderToCSIDL(code);
   let envVarMock = WinConst.knownFolderToMockEnvVar(code);
-  isWin ?
-    /*
-     * TODO: This should call a special form for parsing windows paths.
-     */
-    Fp.absoluteExn(sh_get_folder_path(csidl, shGetFolderPathCurrent)) :
-    {
+  if (isWin) {
+    let pathStr= sh_get_folder_path(csidl, shGetFolderPathCurrent);
+    pathStr
+    |> normalizePathSeparator
+    |> Fp.absoluteExn;
+  } else {
       let opt = getOptionalEnvAbsoluteExn(envVarMock);
       switch (opt) {
       | None => getEnvAbsoluteExn("PWD")
       | Some(abs) => abs
       };
     };
+  };
 };
 
 module type User = {
