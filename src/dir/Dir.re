@@ -144,8 +144,7 @@ let getEnvAbsoluteExn = s =>
   | txt =>
     txt
     |> normalizeIfWindows
-    |> Fp.absoluteExn
-    |> Option.some;
+    |> Fp.absoluteExn;
   };
 
 /**
@@ -160,11 +159,10 @@ let shGetFolderPath = code => {
     |> normalizePathSeparator
     |> Fp.absoluteExn;
   } else {
-      let opt = getOptionalEnvAbsoluteExn(envVarMock);
-      switch (opt) {
-      | None => getEnvAbsoluteExn("PWD")
-      | Some(abs) => abs
-      };
+    let opt = getOptionalEnvAbsoluteExn(envVarMock);
+    switch (opt) {
+    | None => getEnvAbsoluteExn("PWD")
+    | Some(abs) => abs
     };
   };
 };
