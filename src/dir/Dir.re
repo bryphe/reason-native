@@ -12,6 +12,9 @@
  * All directories are returned as `Fp.t`.
  *
  */
+
+prerr_endline ("Dir.start");
+
 external sh_get_folder_path: (int, 'flags) => string = "sh_get_folder_path";
 let shGetFolderPathCurrent = 0;
 let shGetFolderPathDefault = 1;
@@ -39,8 +42,10 @@ let platform =
       | _ => Linux
       };
     } else if (Sys.cygwin) {
+      prerr_endline ("Platform: cygwin");
       Windows(Cygwin);
     } else {
+      prerr_endline("Platform: windows");
       Windows(Win32);
     }
   );
@@ -151,10 +156,13 @@ let getEnvAbsoluteExn = s =>
  * Allows mocking out the windows variables on other platforms for testing.
  */
 let shGetFolderPath = code => {
+  prerr_endline ("shGetFolderPath: " ++ string_of_int(code));
   let csidl = WinConst.knownFolderToCSIDL(code);
   let envVarMock = WinConst.knownFolderToMockEnvVar(code);
   if (isWin) {
+    prerr_endline ("Calling sh_get_folder_path...");
     let pathStr= sh_get_folder_path(csidl, shGetFolderPathCurrent);
+    prerr_endline ("Got str: " ++ pathStr);
     pathStr
     |> normalizePathSeparator
     |> Fp.absoluteExn;
